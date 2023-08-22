@@ -7,11 +7,13 @@ plugins {
     kotlin("jvm") version "1.9.0"
     kotlin("plugin.serialization") version "1.9.0"
     `maven-publish`
+    signing
     application
 }
 
 group = "net.lusade"
-version = "0.1.0-SNAPSHOT"
+version = "0.1.0"
+description = "ULID support for Exposed"
 
 repositories {
     mavenCentral()
@@ -36,18 +38,23 @@ kotlin {
     jvmToolchain(11)
 }
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
 publishing {
     publications {
-        create<MavenPublication>("maven") {
+        create<MavenPublication>("mavenJava") {
             from(components["java"])
 
-            groupId = group.toString()
-            artifactId = "exposed-ulid"
-            version = version
+            afterEvaluate {
+                artifactId = tasks.jar.get().archiveBaseName.get()
+            }
 
             pom {
-                name.set("exposed-ulid")
-                description.set("ULID support for Exposed")
+                name.set(rootProject.name)
+                description.set(project.description)
                 url.set("https://github.com/luluvia/ulid-exposed")
                 licenses {
                     license {
@@ -70,4 +77,24 @@ publishing {
             }
         }
     }
+
+    repositories {
+        maven {
+            val releasesRepoUrl = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+            val snapshotsRepoUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+            val nexusUsername = System.getenv("NEXUS_USERNAME")
+            val nexusPassword = System.getenv("NEXUS_PASSWORD")
+
+            name = "Sonatype"
+            url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
+            credentials {
+                username = nexusUsername
+                password = nexusPassword
+            }
+        }
+    }
+}
+
+signing {
+    sign(publishing.publications["mavenJava"])
 }
