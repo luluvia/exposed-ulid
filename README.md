@@ -1,5 +1,6 @@
 # ULID in Exposed
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg"/></a>
+<a href="https://central.sonatype.com/artifact/net.lusade/exposed-ulid"><img src="https://staging.shields.io/maven-central/v/net.lusade/exposed-ulid"/></a>
 
 [ULID](https://github.com/ulid/spec) (Universally Unique Lexicographically Sortable Identifier) data type integration
 within [Exposed](https://github.com/JetBrains/Exposed), the Kotlin SQL Framework. This library works with PostgreSQL,
