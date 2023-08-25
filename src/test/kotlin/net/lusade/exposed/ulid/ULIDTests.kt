@@ -36,6 +36,22 @@ class ULIDTests : ShouldSpec({
         }
     }
 
+    context("CULIDTable") {
+        should("create a table with a ULID primary key with UUID as a base") {
+            withCulidTable { tester ->
+                tester.selectAll().count() shouldBe 1
+                tester.selectAll().map { it[tester.id].value } shouldBe listOf("01H8A9687C8Q2F566YEF8YNGEP")
+            }
+        }
+
+        should("create a table with a ULID column with UUID as a base") {
+            withCulidTable { tester ->
+                tester.selectAll().count() shouldBe 1
+                tester.selectAll().map { it[tester.culid] } shouldBe listOf("01H8A9687C8Q2F566YEF8YNGEP")
+            }
+        }
+    }
+
     context("ULIDEntity") {
         should("create an entity with a ULID primary key") {
             withUlidEntity { entity ->
@@ -46,6 +62,20 @@ class ULIDTests : ShouldSpec({
         should("create an entity with a ULID column") {
             withUlidEntity { entity ->
                 entity.ulid shouldBe "01H8A9687C8Q2F566YEF8YNGEP"
+            }
+        }
+    }
+
+    context("CULIDEntity") {
+        should("create an entity with a ULID primary key with UUID as a base") {
+            withCulidEntity { entity ->
+                entity.id.value shouldBe "01H8A9687C8Q2F566YEF8YNGEP"
+            }
+        }
+
+        should("create an entity with a ULID column with UUID as a base") {
+            withCulidEntity { entity ->
+                entity.culid shouldBe "01H8A9687C8Q2F566YEF8YNGEP"
             }
         }
     }

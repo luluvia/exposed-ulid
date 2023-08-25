@@ -1,6 +1,7 @@
 package net.lusade.exposed.ulid
 
 import org.jetbrains.exposed.dao.id.EntityID
+import javax.swing.text.html.parser.Entity
 
 object ULIDTestsData {
     object UlidTable : ULIDTable<String>(
@@ -12,23 +13,25 @@ object ULIDTestsData {
     }
 
     object UlidTableCustomSerializer : ULIDTable<String>(
-        serializer = UlidTestSerializer,
+        serializer = AltTestULIDSerializer,
         ulidGenerator = { "01H8A9687C8Q2F566YEF8YNGEP" }
     )
+
+    object CulidTable : CULIDTable<String>(
+        name = "culid_table",
+        serializer = TestCULIDSerializer,
+        ulidGenerator = { "01H8A9687C8Q2F566YEF8YNGEP" }
+    ) {
+        val culid = culid<String>("culid", TestCULIDSerializer)
+    }
 
     class UlidEntity(id: EntityID<String>) : ULIDEntity<String>(id) {
         companion object : ULIDEntityClass<String, UlidEntity>(UlidTable)
         var ulid by UlidTable.ulid
     }
 
-    object UlidTestSerializer : ULIDSerializer {
-        override fun <T> serialize(value: T): String {
-            return value.toString().dropLast(1) + "S"
-        }
-
-        override fun <T> deserialize(value: String): T {
-            @Suppress("UNCHECKED_CAST")
-            return value as T
-        }
+    class CulidEntity(id: EntityID<String>) : ULIDEntity<String>(id) {
+        companion object : CULIDEntityClass<String, CulidEntity>(CulidTable)
+        var culid by CulidTable.culid
     }
 }

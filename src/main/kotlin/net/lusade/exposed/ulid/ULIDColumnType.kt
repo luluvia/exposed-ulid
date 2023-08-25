@@ -7,6 +7,7 @@ import org.jetbrains.exposed.sql.Table.Dual.clientDefault
 import org.jetbrains.exposed.sql.vendors.PostgreSQLDialect
 import org.jetbrains.exposed.sql.vendors.currentDialect
 import org.postgresql.util.PGobject
+import java.util.UUID
 
 /**
  * Column for storing ULID data in binary format.
@@ -14,13 +15,17 @@ import org.postgresql.util.PGobject
  * @param T The type of the ULID data.
  * @param serializer Class to serialize and deserialize the ULID data.
  */
-class ULIDColumnType<T : Comparable<T>>(private val serializer: ULIDSerializer) : ColumnType() {
-    override fun sqlType(): String = "ulid"
+class ULIDColumnType<T : Comparable<T>>(
+    private val serializer: ULIDSerializer,
+    private val useUUIDType: Boolean = false
+) : ColumnType() {
+    override fun sqlType(): String = if (useUUIDType) "uuid" else "ulid"
 
     override fun valueFromDB(value: Any): Any {
         return when {
-            currentDialect is PostgreSQLDialect && value is PGobject && value.type == "ulid" -> serializer.deserialize<T>(value.value!!)
+            currentDialect is PostgreSQLDialect && value is PGobject && value.type == sqlType() -> serializer.deserialize<T>(value.value!!)
             value is String && value.matches(ulidRegex) -> serializer.deserialize(value)
+            value is UUID && useUUIDType -> serializer.deserialize(value.toString())
             else -> error("Unexpected value of type ULID: $value of ${value::class.qualifiedName}")
         }
     }
@@ -54,6 +59,20 @@ fun <T : Comparable<T>> Table.ulid(
     name: String,
     serializer: ULIDSerializer
 ): Column<T> = registerColumn(name, ULIDColumnType<T>(serializer))
+
+/**
+ * Creates a column, with the specified [name], for storing ULID data in binary format.
+ * This version of the function will use UUID type instead of ULID type for storing the data.
+ *
+ * @param T The type of the ULID data.
+ * @param name The name of the column.
+ * @param serializer Class to serialize and deserialize the ULID data.
+ * @return The column.
+ */
+fun <T : Comparable<T>> Table.culid(
+    name: String,
+    serializer: ULIDSerializer
+): Column<T> = registerColumn(name, ULIDColumnType<T>(serializer, true))
 
 /**
  * ULID column will auto generate its value on a client side just before an insert.
